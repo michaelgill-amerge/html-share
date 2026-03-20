@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;background:#0a1628;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+  .stage{width:860px;min-height:480px;background:#072778;border-radius:16px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+  .scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:36px 48px;opacity:0;transition:opacity 0.4s ease;pointer-events:none;}
+  .scene.active{opacity:1;pointer-events:all;}
+  .bg-circle{position:absolute;border-radius:50%;opacity:0.04;background:#4DB5EF;pointer-events:none;}
+  .controls{display:flex;align-items:center;gap:14px;margin-top:16px;}
+  .btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 18px;border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background 0.2s;}
+  .btn:hover{background:rgba(255,255,255,0.2);}
+  .btn:disabled{opacity:0.3;cursor:default;}
+  .btn.primary{background:#4DB5EF;border-color:#4DB5EF;color:#072778;}
+  .btn.primary:hover{background:#6ec4f3;}
+  .progress-dots{display:flex;gap:6px;align-items:center;}
+  .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,0.2);transition:background 0.3s,transform 0.3s;cursor:pointer;}
+  .dot.active{background:#4DB5EF;transform:scale(1.3);}
+  .scene-counter{font-size:11px;color:rgba(255,255,255,0.35);font-weight:500;min-width:40px;text-align:center;}
+  .eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#4DB5EF;margin-bottom:10px;}
+  .target-box{background:rgba(255,255,255,0.07);border:2px solid #4DB5EF;border-radius:14px;padding:24px 56px;text-align:center;margin-bottom:10px;}
+  .target-box .amount{font-size:52px;font-weight:900;color:#fff;line-height:1;letter-spacing:-2px;}
+  .target-box .label{font-size:13px;color:rgba(255,255,255,0.55);margin-top:6px;}
+  .pool-row{display:flex;align-items:stretch;gap:10px;width:100%;}
+  .pool-box{flex:1;border-radius:10px;padding:16px 14px;text-align:center;border:1.5px solid;opacity:0;transform:translateY(12px);transition:opacity 0.45s,transform 0.45s;}
+  .pool-box.shown{opacity:1;transform:translateY(0);}
+  .pool-box.pb{border-color:#7ba8f0;background:rgba(7,39,120,0.35);}
+  .pool-box.ps{border-color:#4DB5EF;background:rgba(77,181,239,0.12);}
+  .pool-box.pt{border-color:#0CA88E;background:rgba(12,168,142,0.12);}
+  .pool-pct{font-size:13px;font-weight:700;margin-bottom:4px;}
+  .pb .pool-pct{color:#7ba8f0;}.ps .pool-pct{color:#4DB5EF;}.pt .pool-pct{color:#0CA88E;}
+  .pool-calc{font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:6px;}
+  .pool-amount{font-size:28px;font-weight:900;letter-spacing:-1px;}
+  .pb .pool-amount{color:#aac3f5;}.ps .pool-amount{color:#4DB5EF;}.pt .pool-amount{color:#0CA88E;}
+  .pool-name{font-size:10px;color:rgba(255,255,255,0.5);margin-top:4px;}
+  .calc-panel{background:rgba(255,255,255,0.06);border-radius:12px;padding:20px 24px;width:100%;}
+  .calc-panel h3{font-size:12px;font-weight:700;margin-bottom:14px;}
+  .pb-h{color:#aac3f5;}.ps-h{color:#4DB5EF;}.pt-h{color:#0CA88E;}
+  .calc-table{width:100%;border-collapse:collapse;}
+  .calc-table th{font-size:9px;font-weight:700;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.5px;padding:3px 8px;border-bottom:1px solid rgba(255,255,255,0.08);text-align:left;}
+  .calc-table th:last-child{text-align:right;}
+  .calc-table td{font-size:12px;color:rgba(255,255,255,0.8);padding:7px 8px;border-bottom:1px solid rgba(255,255,255,0.06);}
+  .calc-table tr:last-child td{border-bottom:none;}
+  .calc-table td:last-child{text-align:right;font-weight:700;color:#fff;}
+  .calc-table td.formula{font-size:10.5px;color:rgba(255,255,255,0.45);font-style:italic;}
+  .calc-table tr.total-row td{background:rgba(255,255,255,0.05);}
+  .combine-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;width:100%;margin-bottom:12px;}
+  .ae-card{border-radius:10px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.05);overflow:hidden;opacity:0;transform:translateY(10px);transition:opacity 0.45s,transform 0.45s;}
+  .ae-card.shown{opacity:1;transform:translateY(0);}
+  .ae-card-head{background:rgba(255,255,255,0.08);padding:8px 12px;font-size:11px;font-weight:700;color:#fff;}
+  .ae-card-body{padding:10px 12px;display:flex;flex-direction:column;gap:5px;}
+  .ae-line{display:flex;justify-content:space-between;align-items:center;font-size:11px;}
+  .ae-line .lbl{color:rgba(255,255,255,0.5);}
+  .ae-line .val{font-weight:700;}
+  .ae-line.total{border-top:1px solid rgba(255,255,255,0.1);padding-top:6px;margin-top:2px;font-size:13px;}
+  .ae-line.total .lbl{color:rgba(255,255,255,0.7);}
+  .ae-line.total .val{color:#4DB5EF;font-size:15px;}
+  .bars-wrap{width:100%;max-width:700px;}
+  .bar-row-a{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .bar-ae{font-size:11px;font-weight:600;color:rgba(255,255,255,0.65);width:34px;flex-shrink:0;}
+  .bar-track{flex:1;display:flex;border-radius:6px;overflow:hidden;height:30px;}
+  .bar-seg{height:100%;display:flex;align-items:center;justify-content:center;font-size:9.5px;font-weight:700;color:rgba(255,255,255,0.9);width:0;transition:width 1s ease;white-space:nowrap;overflow:hidden;}
+  .bar-total{font-size:12px;font-weight:800;color:#4DB5EF;width:42px;text-align:right;flex-shrink:0;}
+  .chart-legend{display:flex;gap:16px;justify-content:center;margin-top:4px;}
+  .leg-item{display:flex;align-items:center;gap:5px;font-size:9.5px;color:rgba(255,255,255,0.45);}
+  .leg-dot{width:8px;height:8px;border-radius:2px;}
+  .flow-node{border-radius:12px;padding:18px 22px;text-align:center;opacity:0;transition:opacity 0.5s;}
+  .flow-node.shown{opacity:1;}
+  .flow-arrow{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0 8px;opacity:0;transition:opacity 0.5s;}
+  .flow-arrow.shown{opacity:1;}
+  .flow-arrow-line{width:36px;height:1.5px;background:rgba(255,255,255,0.2);position:relative;}
+  .flow-arrow-line::after{content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid rgba(255,255,255,0.2);}
+  .flow-arrow-label{font-size:8.5px;color:rgba(255,255,255,0.3);font-weight:600;white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="bg-circle" style="width:380px;height:380px;top:-80px;right:-60px;"></div>
+  <div class="bg-circle" style="width:220px;height:220px;bottom:-50px;left:-30px;"></div>
+
+  <!-- S0: Title -->
+  <div class="scene active" id="s0">
+    <div class="eyebrow">Amerge · Q2 2025</div>
+    <div style="font-size:28px;font-weight:900;color:#fff;text-align:center;line-height:1.25;margin-bottom:14px;">How is your individual<br>target calculated?</div>
+    <div style="font-size:13px;color:rgba(255,255,255,0.55);text-align:center;line-height:1.65;max-width:500px;margin-bottom:24px;">A step-by-step worked example — starting from the company revenue target and showing exactly how it flows down to an individual number.</div>
+    <div style="display:flex;gap:10px;">
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:6px 16px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75);">Illustrative example · £400k company target</div>
+      <div style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:20px;padding:6px 16px;font-size:11px;font-weight:600;color:rgba(255,255,255,0.75);">3 AEs · 3 components</div>
+    </div>
+  </div>
+
+  <!-- S1: Company target -->
+  <div class="scene" id="s1">
+    <div class="eyebrow">Step 1 · Starting point</div>
+    <div class="target-box">
+      <div class="amount">£400k</div>
+      <div class="label">Illustrative company revenue target · April – June 2025</div>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);text-align:center;max-width:460px;line-height:1.65;margin-top:12px;">All figures in this walkthrough are illustrative examples only. This total is split into three separate pools using a 25 / 50 / 25 weighting.</div>
+  </div>
+
+  <!-- S2: Three pools -->
+  <div class="scene" id="s2">
+    <div class="eyebrow">Step 2 · Split into three pools</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.4);text-align:center;margin-bottom:18px;">In this example, £400k is divided into three pools using the 25 / 50 / 25 weighting</div>
+    <div class="pool-row">
+      <div class="pool-box pb" id="pool0">
+        <div class="pool-pct">25%</div>
+        <div class="pool-calc">25% × £400k</div>
+        <div class="pool-amount">£100k</div>
+        <div class="pool-name">Historical pool</div>
+      </div>
+      <div class="pool-box ps" id="pool1">
+        <div class="pool-pct">50%</div>
+        <div class="pool-calc">50% × £400k</div>
+        <div class="pool-amount">£200k</div>
+        <div class="pool-name">Forecast pool</div>
+      </div>
+      <div class="pool-box pt" id="pool2">
+        <div class="pool-pct">25%</div>
+        <div class="pool-calc">25% × £400k</div>
+        <div class="pool-amount">£100k</div>
+        <div class="pool-name">Capacity pool</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.25);text-align:center;margin-top:14px;">£100k + £200k + £100k = £400k ✓</div>
+  </div>
+
+  <!-- S3: Historical -->
+  <div class="scene" id="s3">
+    <div class="eyebrow" style="color:#7ba8f0;">Historical pool · £100k</div>
+    <div class="calc-panel" style="border-left:3px solid #7ba8f0;">
+      <h3 class="pb-h">Each AE's share is based on their % of historical revenue</h3>
+      <table class="calc-table">
+        <thead><tr><th>AE</th><th>Historical rev share</th><th>Calculation</th><th>From pool</th></tr></thead>
+        <tbody>
+          <tr><td>AE 1</td><td>38%</td><td class="formula">38% × £100k</td><td style="color:#aac3f5;">£38k</td></tr>
+          <tr><td>AE 2</td><td>35%</td><td class="formula">35% × £100k</td><td style="color:#aac3f5;">£35k</td></tr>
+          <tr><td>AE 3</td><td>27%</td><td class="formula">27% × £100k</td><td style="color:#aac3f5;">£27k</td></tr>
+          <tr class="total-row"><td colspan="3" style="color:rgba(255,255,255,0.35);font-size:10.5px;">Total</td><td style="color:#aac3f5;">£100k ✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- S4: Forecast -->
+  <div class="scene" id="s4">
+    <div class="eyebrow" style="color:#4DB5EF;">Forecast pool · £200k</div>
+    <div class="calc-panel" style="border-left:3px solid #4DB5EF;">
+      <h3 class="ps-h">Each AE's share is based on their % of total team forecast</h3>
+      <table class="calc-table">
+        <thead><tr><th>AE</th><th>Forecast share</th><th>Calculation</th><th>From pool</th></tr></thead>
+        <tbody>
+          <tr><td>AE 1</td><td>40%</td><td class="formula">40% × £200k</td><td style="color:#4DB5EF;">£80k</td></tr>
+          <tr><td>AE 2</td><td>35%</td><td class="formula">35% × £200k</td><td style="color:#4DB5EF;">£70k</td></tr>
+          <tr><td>AE 3</td><td>25%</td><td class="formula">25% × £200k</td><td style="color:#4DB5EF;">£50k</td></tr>
+          <tr class="total-row"><td colspan="3" style="color:rgba(255,255,255,0.35);font-size:10.5px;">Total</td><td style="color:#4DB5EF;">£200k ✓</td></tr>
+        </tbody>
+      </table>
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:10px;">Forecast = booked revenue + opportunity pipeline +/- bottoms up input</div>
+    </div>
+  </div>
+
+  <!-- S5: Capacity -->
+  <div class="scene" id="s5">
+    <div class="eyebrow" style="color:#0CA88E;">Capacity pool · £100k</div>
+    <div class="calc-panel" style="border-left:3px solid #0CA88E;">
+      <h3 class="pt-h">Each AE's share is weighted by IC level, then applied to the pool</h3>
+      <table class="calc-table">
+        <thead><tr><th>AE</th><th>IC level</th><th>Weight</th><th>Capacity share</th><th>From pool</th></tr></thead>
+        <tbody>
+          <tr><td>AE 1</td><td>IC 3</td><td>0.9×</td><td class="formula">0.9 ÷ 2.4 = 37.5%</td><td style="color:#0CA88E;">£38k</td></tr>
+          <tr><td>AE 2</td><td>IC 2</td><td>0.8×</td><td class="formula">0.8 ÷ 2.4 = 33.3%</td><td style="color:#0CA88E;">£33k</td></tr>
+          <tr><td>AE 3</td><td>IC 1</td><td>0.7×</td><td class="formula">0.7 ÷ 2.4 = 29.2%</td><td style="color:#0CA88E;">£29k</td></tr>
+          <tr class="total-row"><td colspan="2" style="color:rgba(255,255,255,0.35);font-size:10.5px;">Total weight: 2.4</td><td></td><td style="color:rgba(255,255,255,0.35);font-size:10.5px;">100%</td><td style="color:#0CA88E;">£100k ✓</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- S6: Combine -->
+  <div class="scene" id="s6">
+    <div class="eyebrow">Step 3 · Add the three pools together</div>
+    <div class="combine-grid">
+      <div class="ae-card" id="ac0">
+        <div class="ae-card-head">AE 1</div>
+        <div class="ae-card-body">
+          <div class="ae-line"><span class="lbl" style="color:#aac3f5;">Historical</span><span class="val" style="color:#aac3f5;">£38k</span></div>
+          <div class="ae-line"><span class="lbl" style="color:#4DB5EF;">Forecast</span><span class="val" style="color:#4DB5EF;">£80k</span></div>
+          <div class="ae-line"><span class="lbl" style="color:#0CA88E;">Capacity</span><span class="val" style="color:#0CA88E;">£38k</span></div>
+          <div class="ae-line total"><span class="lbl">Target</span><span class="val">£156k</span></div>
+        </div>
+      </div>
+      <div class="ae-card" id="ac1">
+        <div class="ae-card-head">AE 2</div>
+        <div class="ae-card-body">
+          <div class="ae-line"><span class="lbl" style="color:#aac3f5;">Historical</span><span class="val" style="color:#aac3f5;">£35k</span></div>
+          <div class="ae-line"><span class="lbl" style="color:#4DB5EF;">Forecast</span><span class="val" style="color:#4DB5EF;">£70k</span></div>
+          <div class="ae-line"><span class="lbl" style="color:#0CA88E;">Capacity</span><span class="val" style="color:#0CA88E;">£33k</span></div>
+          <div class="ae-line total"><span class="lbl">Target</span><span class="val">£138k</span></div>
+        </div>
+      </div>
+      <div class="ae-card" id="ac2">
+        <div class="ae-card-head">AE 3</div>
+        <div class="ae-card-body">
+          <div class="ae-line"><span class="lbl" style="color:#aac3f5;">Historical</span><span class="val" style="color:#aac3f5;">£27k</span></div>
+          <div class="ae-line"><span class="lbl" style="color:#4DB5EF;">Forecast</span><span class="val" style="color:#4DB5EF;">£50k</span></div>
+          <div class="ae-line"><span class="lbl" style="color:#0CA88E;">Capacity</span><span class="val" style="color:#0CA88E;">£29k</span></div>
+          <div class="ae-line total"><span class="lbl">Target</span><span class="val">£106k</span></div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.25);text-align:center;">£156k + £138k + £106k = £400k ✓</div>
+  </div>
+
+  <!-- S7: Closing flow -->
+  <div class="scene" id="s7">
+    <div class="eyebrow">The full picture</div>
+    <div style="display:flex;align-items:center;justify-content:center;width:100%;margin-bottom:24px;">
+      <div class="flow-node" id="fn0" style="background:rgba(77,181,239,0.15);border:2px solid #4DB5EF;min-width:150px;">
+        <div style="font-size:24px;margin-bottom:8px;">&#127970;</div>
+        <div style="font-size:12px;font-weight:700;color:#fff;">Company target</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:3px;">£400k · starting point</div>
+      </div>
+      <div class="flow-arrow" id="fa0">
+        <div class="flow-arrow-label">25 / 50 / 25 model</div>
+        <div class="flow-arrow-line"></div>
+      </div>
+      <div class="flow-node" id="fn1" style="background:rgba(255,255,255,0.06);border:1.5px solid rgba(255,255,255,0.15);min-width:210px;">
+        <div style="font-size:11px;font-weight:700;color:#fff;margin-bottom:10px;">Individual targets derived</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:rgba(255,255,255,0.4);">AE 1</span><span style="color:#4DB5EF;font-weight:700;">£156k</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:rgba(255,255,255,0.4);">AE 2</span><span style="color:#4DB5EF;font-weight:700;">£138k</span></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;"><span style="color:rgba(255,255,255,0.4);">AE 3</span><span style="color:#4DB5EF;font-weight:700;">£106k</span></div>
+        </div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.2);margin-top:8px;font-style:italic;">Illustrative figures only</div>
+      </div>
+      <div class="flow-arrow" id="fa1">
+        <div class="flow-arrow-label">aggregated</div>
+        <div class="flow-arrow-line"></div>
+      </div>
+      <div class="flow-node" id="fn2" style="background:#4DB5EF;min-width:150px;">
+        <div style="font-size:24px;margin-bottom:8px;">&#127758;</div>
+        <div style="font-size:12px;font-weight:700;color:#072778;">Country-level targets</div>
+        <div style="font-size:10px;color:rgba(7,39,120,0.6);margin-top:3px;">Final output</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:rgba(255,255,255,0.28);text-align:center;">Every target is objective, transparent, and consistently applied across the team.</div>
+  </div>
+
+</div>
+
+<div class="controls">
+  <button class="btn" id="prevBtn" onclick="prev()" disabled>&#8592; Back</button>
+  <div class="progress-dots" id="dots"></div>
+  <span class="scene-counter" id="counter">1 / 9</span>
+  <button class="btn" id="playBtn" onclick="togglePlay()">&#9654; Play</button>
+  <button class="btn primary" id="nextBtn" onclick="next()">Next &#8594;</button>
+</div>
+
+<script>
+const TOTAL=8;let cur=0,playing=false,timer=null;
+const dotsEl=document.getElementById('dots');
+for(let i=0;i<TOTAL;i++){const d=document.createElement('div');d.className='dot'+(i===0?' active':'');d.onclick=()=>goTo(i);dotsEl.appendChild(d);}
+
+function updateUI(){
+  document.querySelectorAll('.dot').forEach((d,i)=>d.className='dot'+(i===cur?' active':''));
+  document.getElementById('counter').textContent=(cur+1)+' / '+TOTAL;
+  document.getElementById('prevBtn').disabled=cur===0;
+  document.getElementById('nextBtn').disabled=cur===TOTAL-1;
+}
+
+function showScene(n){
+  document.querySelectorAll('.scene').forEach((s,i)=>s.classList.toggle('active',i===n));
+  if(n===2)animatePools();
+  if(n===6)animateCombine();
+  if(n===7)animateFlow();
+}
+
+function goTo(n){cur=Math.max(0,Math.min(TOTAL-1,n));showScene(cur);updateUI();}
+function next(){if(cur<TOTAL-1)goTo(cur+1);else stopPlay();}
+function prev(){goTo(cur-1);}
+
+function togglePlay(){
+  playing=!playing;
+  document.getElementById('playBtn').textContent=playing?'⏸ Pause':'▶ Play';
+  if(playing){if(cur===TOTAL-1)goTo(0);timer=setInterval(()=>{if(cur<TOTAL-1)next();else stopPlay();},4500);}
+  else clearInterval(timer);
+}
+function stopPlay(){playing=false;clearInterval(timer);document.getElementById('playBtn').textContent='▶ Play';}
+
+function animatePools(){
+  ['pool0','pool1','pool2'].forEach((id,i)=>{
+    const el=document.getElementById(id);el.classList.remove('shown');
+    setTimeout(()=>el.classList.add('shown'),150+i*250);
+  });
+}
+function animateCombine(){
+  ['ac0','ac1','ac2'].forEach((id,i)=>{
+    const el=document.getElementById(id);el.classList.remove('shown');
+    setTimeout(()=>el.classList.add('shown'),150+i*220);
+  });
+}
+function animateBars(){
+  [['b00',24.4],['b01',51.3],['b02',24.4],['b10',25.4],['b11',50.7],['b12',23.9],['b20',25.5],['b21',47.2],['b22',27.4]].forEach(([id,w])=>{
+    const el=document.getElementById(id);el.style.width='0';setTimeout(()=>el.style.width=w+'%',300);
+  });
+}
+function animateFlow(){
+  [['fn0',100],['fa0',350],['fn1',500],['fa1',750],['fn2',950]].forEach(([id,d])=>{
+    const el=document.getElementById(id);el.classList.remove('shown');
+    setTimeout(()=>el.classList.add('shown'),d);
+  });
+}
+
+goTo(0);
+</script>
+</body>
+</html>
