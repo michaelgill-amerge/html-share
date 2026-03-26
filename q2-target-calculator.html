@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Q2 Target Allocation — Amerge</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#edf0f5;min-height:100vh;}
+
+.hdr{background:#072778;padding:16px 28px;display:flex;align-items:center;}
+.hdr-left h1{font-size:15px;font-weight:800;color:#fff;}
+.hdr-left p{font-size:10px;color:rgba(255,255,255,0.45);margin-top:2px;}
+.controls-bar{background:#fff;border-bottom:1px solid #e2e7f0;padding:14px 28px;}
+.ctrl-inner{display:flex;align-items:center;gap:0;max-width:1180px;margin:0 auto;justify-content:center;}
+.ctrl-section{display:flex;flex-direction:column;gap:5px;padding:0 24px;}
+.ctrl-section-lbl{font-size:8px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:#94a3b8;}
+.ctrl-divider{width:1px;height:44px;background:#e2e7f0;flex-shrink:0;}
+
+.tgt-row{display:flex;align-items:baseline;gap:4px;}
+.tgt-sym{font-size:15px;font-weight:700;color:#94a3b8;}
+.tgt-inp{background:#f4f6fb;border:1px solid #d0d8ec;border-radius:6px;padding:5px 10px;font-family:'Inter',sans-serif;font-size:22px;font-weight:800;color:#072778;width:180px;}
+.tgt-inp:focus{outline:none;border-color:#4DB5EF;background:#fff;}
+
+.wt-row{display:flex;align-items:center;gap:14px;}
+.wt-field{display:flex;align-items:center;gap:6px;}
+.wt-field-name{font-size:10px;font-weight:600;color:#5a6a88;min-width:56px;}
+.wt-field-inp{background:#f4f6fb;border:1px solid #d0d8ec;border-radius:6px;padding:5px 0;width:44px;text-align:center;font-family:'Inter',sans-serif;font-size:14px;font-weight:800;color:#072778;}
+.wt-field-inp:focus{outline:none;border-color:#4DB5EF;background:#fff;}
+.wt-field-inp::-webkit-inner-spin-button{-webkit-appearance:none;}
+.wt-field-inp.locked{opacity:0.45;border-style:dashed;}
+.wt-field-pct{font-size:12px;color:#94a3b8;font-weight:600;}
+.wt-lock{background:#f4f6fb;border:1px solid #d0d8ec;border-radius:4px;padding:3px 8px;cursor:pointer;font-size:8.5px;font-weight:700;color:#5a6a88;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.wt-lock:hover{background:#e8ecf4;color:#072778;}
+.wt-lock.on{background:#eef2fc;border-color:#4DB5EF;color:#072778;}
+.wt-sep{width:1px;height:24px;background:#e2e7f0;}
+.wt-sum-block{display:flex;align-items:center;gap:8px;}
+.wt-sum{font-size:12px;font-weight:800;white-space:nowrap;}
+.wt-sum.ok{color:#0CA88E;}.wt-sum.bad{color:#f87171;}
+.wt-reset{background:#f4f6fb;border:1px solid #d0d8ec;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:9px;font-weight:700;color:#5a6a88;font-family:'Inter',sans-serif;transition:all 0.15s;}
+.wt-reset:hover{background:#e8ecf4;color:#072778;}
+
+/* ── CONTROLS BAR ── */
+.content{max-width:1180px;margin:0 auto;padding:18px 20px;}
+.pools{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:14px;}
+.pool-card{background:#fff;border-radius:10px;border:1px solid #e2e7f0;padding:13px 16px;}
+.pool-card .p-lbl{font-size:8px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;}
+.pool-card .p-pct{font-size:10.5px;font-weight:600;margin-bottom:2px;}
+.pool-card .p-amt{font-size:21px;font-weight:900;letter-spacing:-0.5px;}
+.pool-card .p-desc{font-size:9px;color:#94a3b8;margin-top:3px;}
+.pc-a .p-lbl,.pc-a .p-pct{color:#5a7ac7;}.pc-a .p-amt{color:#072778;}
+.pc-b .p-lbl,.pc-b .p-pct{color:#2a9fd4;}.pc-b .p-amt{color:#1a6a8a;}
+.pc-c .p-lbl,.pc-c .p-pct{color:#0CA88E;}.pc-c .p-amt{color:#0CA88E;}
+
+.tbl-wrap{background:#fff;border-radius:12px;border:1px solid #e2e7f0;overflow:hidden;}
+.tbl-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#f8fafc;border-bottom:1px solid #e2e7f0;}
+.tbl-toolbar-left{display:flex;gap:6px;}
+.view-btn{background:#fff;border:1px solid #d0d8ec;border-radius:6px;padding:5px 12px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#5a6a88;cursor:pointer;}
+.view-btn.active{background:#072778;border-color:#072778;color:#fff;}
+.tbl-legend{display:flex;gap:12px;}
+.leg-i{display:flex;align-items:center;gap:4px;font-size:9px;color:#6a7d9a;}
+.leg-d{width:8px;height:8px;border-radius:2px;}
+
+table{width:100%;border-collapse:collapse;}
+thead th{font-size:8.5px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;color:#94a3b8;padding:8px 10px;text-align:right;background:#f8fafc;border-bottom:1px solid #e2e7f0;white-space:nowrap;}
+thead th:first-child{text-align:left;}
+thead th:nth-child(2){text-align:center;}
+tbody tr.c-row{border-bottom:1px solid #e8ecf4;cursor:pointer;transition:background 0.12s;}
+tbody tr.c-row:hover{background:#f4f6fb;}
+tbody tr.c-row.open{background:#eef2fc;}
+tbody tr.ae-row{border-bottom:1px solid #f0f4f8;cursor:pointer;transition:background 0.12s;background:#fafbfd;}
+tbody tr.ae-row:hover{background:#f0f4fc;}
+tbody tr.ae-row.open{background:#eef2fc;}
+tbody tr.exp-row{background:#f8fafc;cursor:default;}
+tbody tr.exp-row td{padding:0;}
+td{padding:8px 10px;font-size:11.5px;color:#334155;text-align:right;}
+td:first-child{text-align:left;}
+td:nth-child(2){text-align:center;}
+.c-name{display:flex;align-items:center;gap:8px;font-weight:700;font-size:12.5px;color:#072778;}
+.c-badge{width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;}
+.cb-uk{background:#eef2fc;color:#072778;}.cb-de{background:#fff3e8;color:#c17b3c;}.cb-us{background:#e8f5f2;color:#0e7a6e;}
+.ae-indent{padding-left:42px;}
+.ae-wrap{display:flex;align-items:center;gap:7px;}
+.init-circle{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8.5px;font-weight:700;flex-shrink:0;}
+.ae-nm{font-weight:600;color:#1e3a6e;font-size:11.5px;}
+.chevron{font-size:9px;color:#94a3b8;transition:transform 0.18s;margin-left:3px;}
+.chevron.up{transform:rotate(180deg);}
+.lv-badge{display:inline-block;font-size:8px;font-weight:700;padding:2px 5px;border-radius:6px;white-space:nowrap;}
+.lv-IC1{background:#f0f3fa;color:#5a7ac7;}.lv-IC2{background:#e8f5ff;color:#2a9fd4;}
+.lv-IC3{background:#e0f4ff;color:#0891b2;}.lv-IC4{background:#eef1fa;color:#072778;}
+.lv-none{background:#f4f6fb;color:#94a3b8;}
+.mini-bar{display:flex;height:6px;border-radius:3px;overflow:hidden;width:80px;}
+.mini-seg{height:100%;}
+.exp-inner{padding:12px 14px 14px;}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.exp-card{border-radius:8px;border:1px solid;padding:10px 13px;}
+.exp-card .ec-lbl{font-size:8px;font-weight:700;letter-spacing:0.6px;text-transform:uppercase;margin-bottom:4px;}
+.exp-card .ec-fml{font-size:9px;color:#94a3b8;margin-bottom:3px;font-style:italic;}
+.exp-card .ec-amt{font-size:18px;font-weight:900;}
+.ec-a{border-color:#d0d8f0;}.ec-a .ec-lbl{color:#5a7ac7;}.ec-a .ec-amt{color:#072778;}
+.ec-b{border-color:#b5dbf0;}.ec-b .ec-lbl{color:#2a9fd4;}.ec-b .ec-amt{color:#1a6a8a;}
+.ec-c{border-color:#9dd6ce;}.ec-c .ec-lbl{color:#0CA88E;}.ec-c .ec-amt{color:#0CA88E;}
+tfoot tr{background:#f4f6fb;border-top:2px solid #e2e7f0;}
+tfoot td{padding:8px 10px;font-size:11.5px;font-weight:700;color:#072778;text-align:right;}
+tfoot td:first-child{text-align:left;}
+tfoot td:nth-child(2){text-align:center;}
+.rec{font-size:9.5px;text-align:center;padding:7px;color:#94a3b8;}
+.rec.ok{color:#0CA88E;}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>Q2 Target Allocation — Live Calculator</h1>
+    <p>Amerge · April – June 2026 · Adjust target and weightings to recalculate in real time</p>
+  </div>
+</div>
+
+<div class="controls-bar">
+  <div class="ctrl-inner">
+    <div class="ctrl-section">
+      <div class="ctrl-section-lbl">Monthly target · Q2 2026</div>
+      <div class="tgt-row">
+        <span class="tgt-sym">£</span>
+        <input class="tgt-inp" id="tgtInp" type="text" value="750,000">
+      </div>
+    </div>
+    <div class="ctrl-divider"></div>
+    <div class="ctrl-section">
+      <div class="ctrl-section-lbl">Allocation weightings</div>
+      <div class="wt-row">
+        <div class="wt-field">
+          <span class="wt-field-name">Capacity</span>
+          <input class="wt-field-inp" id="wCap" type="number" min="0" max="100" value="25">
+          <span class="wt-field-pct">%</span>
+          <button class="wt-lock" id="lCap" onclick="toggleLock('cap')">Free</button>
+        </div>
+        <div class="wt-sep"></div>
+        <div class="wt-field">
+          <span class="wt-field-name">Historical</span>
+          <input class="wt-field-inp" id="wHist" type="number" min="0" max="100" value="25">
+          <span class="wt-field-pct">%</span>
+          <button class="wt-lock" id="lHist" onclick="toggleLock('hist')">Free</button>
+        </div>
+        <div class="wt-sep"></div>
+        <div class="wt-field">
+          <span class="wt-field-name">Forecast</span>
+          <input class="wt-field-inp" id="wFcst" type="number" min="0" max="100" value="50">
+          <span class="wt-field-pct">%</span>
+          <button class="wt-lock" id="lFcst" onclick="toggleLock('fcst')">Free</button>
+        </div>
+        <div class="wt-sep"></div>
+        <div class="wt-sum-block">
+          <span id="wtSum" class="wt-sum ok">= 100%</span>
+          <button class="wt-reset" onclick="resetWeights()">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="content">
+  <div class="pools" id="pools"></div>
+  <div class="tbl-wrap">
+    <div class="tbl-toolbar">
+      <div class="tbl-toolbar-left">
+        <button class="view-btn active" id="vBtnCountry" onclick="setView('country')">Country view</button>
+        <button class="view-btn" id="vBtnAE" onclick="setView('ae')">All AEs</button>
+      </div>
+      <div class="tbl-legend">
+        <div class="leg-i"><div class="leg-d" style="background:#5a7ac7"></div>Capacity</div>
+        <div class="leg-i"><div class="leg-d" style="background:#4DB5EF"></div>Historical</div>
+        <div class="leg-i"><div class="leg-d" style="background:#0CA88E"></div>Forecast</div>
+      </div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Level</th>
+          <th>Cap %</th>
+          <th>Hist %</th>
+          <th>Fcst %</th>
+          <th>Weighted %</th>
+          <th>Q2 Target</th>
+          <th>Composition</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+      <tfoot id="tfoot"></tfoot>
+    </table>
+    <div class="rec" id="rec"></div>
+  </div>
+</div>
+
+<script>
+const AES=[
+  {name:'Sibelle Hakki',        country:'UK',level:'IC1',capW:0.7,histPct:2.59, fcstPct:2.52},
+  {name:'Chloe Enever',         country:'UK',level:'IC3',capW:0.9,histPct:12.80,fcstPct:12.90},
+  {name:'Fred Pearce',          country:'UK',level:null, capW:0,  histPct:2.57, fcstPct:2.29},
+  {name:'Toby Shelley',         country:'UK',level:'IC4',capW:1.0,histPct:21.30,fcstPct:18.17},
+  {name:'Anna Zhu',             country:'DE',level:'IC2',capW:0.8,histPct:10.46,fcstPct:11.54},
+  {name:'Eleonora Amisano',     country:'DE',level:'IC1',capW:0.7,histPct:9.16, fcstPct:7.23},
+  {name:'Laura Abadias Velilla',country:'DE',level:'IC2',capW:0.8,histPct:13.78,fcstPct:11.12},
+  {name:'Miriam Sodergren',     country:'DE',level:null, capW:0,  histPct:1.26, fcstPct:1.11},
+  {name:'Max Rottenaicher',     country:'DE',level:null, capW:0,  histPct:0.32, fcstPct:0.36},
+  {name:'Kelsey Corley',        country:'US',level:'IC2',capW:0.8,histPct:7.92, fcstPct:8.60},
+  {name:'Kurt Dikeman',         country:'US',level:'IC4',capW:1.0,histPct:3.12, fcstPct:13.68},
+  {name:'Rachel Dickman',       country:'US',level:'IC4',capW:1.0,histPct:13.53,fcstPct:9.36},
+  {name:'Robert Tasker',        country:'US',level:'IC1',capW:0.7,histPct:1.19, fcstPct:1.12},
+];
+const TOT_W=8.4;
+const COUNTRIES=['UK','DE','US'];
+const C_CLASS={UK:'cb-uk',DE:'cb-de',US:'cb-us'};
+const INIT_BG=['#eef2fc','#e6f4ff','#f0faf7','#eef2ff','#e8f5fe','#fef3e8','#e8f5fe','#f5f0ff','#f0f0f0','#e8f5f0','#eef2fc','#e8f5ff','#fef0e8'];
+const IC_COLS={IC1:'#5a7ac7',IC2:'#2a9fd4',IC3:'#0891b2',IC4:'#072778'};
+
+let W={cap:25,hist:25,fcst:50};
+let locked={cap:false,hist:false,fcst:false};
+let expandedC=new Set();
+let expandedAE=new Set();
+let view='country';
+let rawTgt=750000;
+
+const fmt=n=>'£'+Math.round(n).toLocaleString('en-GB');
+const fmtP=n=>n.toFixed(2)+'%';
+const fmtPc=n=>n.toFixed(1)+'%';
+const initials=n=>n.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+
+function getTgt(){return rawTgt;}
+
+function compute(){
+  const tgt=getTgt();
+  const cP=tgt*W.cap/100,hP=tgt*W.hist/100,fP=tgt*W.fcst/100;
+  return AES.map((ae,i)=>{
+    const cS=TOT_W>0?ae.capW/TOT_W:0,hS=ae.histPct/100,fS=ae.fcstPct/100;
+    const cA=cP*cS,hA=hP*hS,fA=fP*fS,tot=cA+hA+fA;
+    return {...ae,cS,hS,fS,cA,hA,fA,tot,pct:tgt>0?tot/tgt*100:0,idx:i};
+  });
+}
+
+function bar(cA,hA,fA,tot,w=80){
+  const cP=tot>0?cA/tot*100:0,hP=tot>0?hA/tot*100:0,fP=tot>0?fA/tot*100:0;
+  return `<div class="mini-bar" style="width:${w}px"><div class="mini-seg" style="background:#5a7ac7;width:${cP}%"></div><div class="mini-seg" style="background:#4DB5EF;width:${hP}%"></div><div class="mini-seg" style="background:#0CA88E;width:${fP}%"></div></div>`;
+}
+
+function aeRow(ae,indent){
+  const isOpen=expandedAE.has(ae.idx);
+  const tgt=getTgt(),cP=tgt*W.cap/100,hP=tgt*W.hist/100,fP=tgt*W.fcst/100;
+  const bg=INIT_BG[ae.idx%INIT_BG.length],col=IC_COLS[ae.level]||'#888';
+  let h=`<tr class="ae-row${isOpen?' open':''}" onclick="toggleAE(${ae.idx})">
+    <td ${indent?'class="ae-indent"':''}><div class="ae-wrap">
+      <div class="init-circle" style="background:${bg};color:${col}">${initials(ae.name)}</div>
+      <span class="ae-nm">${ae.name}</span><span class="chevron${isOpen?' up':''}">&#9660;</span>
+    </div></td>
+    <td><span class="lv-badge ${ae.level?'lv-'+ae.level:'lv-none'}">${ae.level||'—'}</span></td>
+    <td>${fmtPc(ae.cS*100)}</td><td>${fmtP(ae.histPct)}</td><td>${fmtP(ae.fcstPct)}</td>
+    <td style="font-weight:700;color:#072778">${fmtP(ae.pct)}</td>
+    <td style="font-weight:800;color:#072778;font-size:13px">${fmt(ae.tot)}</td>
+    <td>${bar(ae.cA,ae.hA,ae.fA,ae.tot)}</td>
+  </tr>`;
+  if(isOpen) h+=`<tr class="exp-row"><td colspan="8"><div class="exp-inner"><div class="exp-grid">
+    <div class="exp-card ec-a"><div class="ec-lbl">Capacity</div><div class="ec-fml">${ae.level?`${fmtPc(ae.cS*100)} of ${fmt(cP)} pool`:'No IC level — £0'}</div><div class="ec-amt">${fmt(ae.cA)}</div></div>
+    <div class="exp-card ec-b"><div class="ec-lbl">Historical</div><div class="ec-fml">${fmtP(ae.histPct)} of ${fmt(hP)} pool</div><div class="ec-amt">${fmt(ae.hA)}</div></div>
+    <div class="exp-card ec-c"><div class="ec-lbl">Forecast</div><div class="ec-fml">${fmtP(ae.fcstPct)} of ${fmt(fP)} pool</div><div class="ec-amt">${fmt(ae.fA)}</div></div>
+  </div></div></td></tr>`;
+  return h;
+}
+
+function render(){
+  const data=compute(),tgt=getTgt();
+  document.getElementById('pools').innerHTML=`
+    <div class="pool-card pc-a"><div class="p-lbl">Capacity pool</div><div class="p-pct">${W.cap}% of monthly target</div><div class="p-amt">${fmt(tgt*W.cap/100)}</div><div class="p-desc">Distributed by IC-level weighting (0.7–1.0×)</div></div>
+    <div class="pool-card pc-b"><div class="p-lbl">Historical pool</div><div class="p-pct">${W.hist}% of monthly target</div><div class="p-amt">${fmt(tgt*W.hist/100)}</div><div class="p-desc">Distributed by Q1 2026 revenue share</div></div>
+    <div class="pool-card pc-c"><div class="p-lbl">Forecast pool</div><div class="p-pct">${W.fcst}% of monthly target</div><div class="p-amt">${fmt(tgt*W.fcst/100)}</div><div class="p-desc">Distributed by Q2 2026 forecast share</div></div>`;
+
+  let html='';
+  if(view==='country'){
+    COUNTRIES.forEach(c=>{
+      const aes=data.filter(a=>a.country===c);
+      const tot=aes.reduce((s,a)=>s+a.tot,0);
+      const pct=aes.reduce((s,a)=>s+a.pct,0);
+      const cA=aes.reduce((s,a)=>s+a.cA,0),hA=aes.reduce((s,a)=>s+a.hA,0),fA=aes.reduce((s,a)=>s+a.fA,0);
+      const cS=aes.reduce((s,a)=>s+a.cS,0),hS=aes.reduce((s,a)=>s+a.hS,0)*100,fS=aes.reduce((s,a)=>s+a.fS,0)*100;
+      const isOpen=expandedC.has(c);
+      html+=`<tr class="c-row${isOpen?' open':''}" onclick="toggleC('${c}')">
+        <td><div class="c-name"><div class="c-badge ${C_CLASS[c]}">${c}</div>${c}<span class="chevron${isOpen?' up':''}">&#9660;</span></div></td>
+        <td></td>
+        <td>${fmtPc(cS*100)}</td><td>${fmtP(hS)}</td><td>${fmtP(fS)}</td>
+        <td style="font-weight:700;color:#072778">${fmtP(pct)}</td>
+        <td style="font-weight:800;color:#072778;font-size:13px">${fmt(tot)}</td>
+        <td>${bar(cA,hA,fA,tot)}</td>
+      </tr>`;
+      if(isOpen) aes.forEach(ae=>{html+=aeRow(ae,true);});
+    });
+  } else {
+    data.forEach(ae=>{html+=aeRow(ae,false);});
+  }
+  document.getElementById('tbody').innerHTML=html;
+
+  const totQ2=data.reduce((s,a)=>s+a.tot,0);
+  const tCS=data.reduce((s,a)=>s+a.cS,0)*100;
+  const tHS=data.reduce((s,a)=>s+a.histPct,0);
+  const tFS=data.reduce((s,a)=>s+a.fcstPct,0);
+  document.getElementById('tfoot').innerHTML=`<tr><td>Total</td><td></td><td>${fmtPc(tCS)}</td><td>${fmtP(tHS)}</td><td>${fmtP(tFS)}</td><td>100.00%</td><td>${fmt(totQ2)}</td><td></td></tr>`;
+
+  const diff=Math.abs(totQ2-tgt);
+  const rec=document.getElementById('rec');
+  rec.textContent=diff<1?`Total reconciles to monthly target of ${fmt(tgt)} ✓`:`Rounding difference: £${Math.round(diff)}`;
+  rec.className=diff<1?'rec ok':'rec';
+}
+
+function toggleC(c){expandedC.has(c)?expandedC.delete(c):expandedC.add(c);render();}
+function toggleAE(i){expandedAE.has(i)?expandedAE.delete(i):expandedAE.add(i);render();}
+function setView(v){
+  view=v;
+  document.getElementById('vBtnCountry').className='view-btn'+(v==='country'?' active':'');
+  document.getElementById('vBtnAE').className='view-btn'+(v==='ae'?' active':'');
+  render();
+}
+
+function toggleLock(k){
+  locked[k]=!locked[k];
+  const K=k.charAt(0).toUpperCase()+k.slice(1);
+  document.getElementById('l'+K).textContent=locked[k]?'Locked':'Free';
+  document.getElementById('l'+K).className='wt-lock'+(locked[k]?' on':'');
+  document.getElementById('w'+K).className='wt-field-inp'+(locked[k]?' locked':'');
+}
+
+function updateWeight(changed,v){
+  v=Math.max(0,Math.min(100,parseInt(v)||0));
+  const others=['cap','hist','fcst'].filter(k=>k!==changed);
+  const free=others.filter(k=>!locked[k]);
+  const lockedSum=others.filter(k=>locked[k]).reduce((s,k)=>s+W[k],0);
+  v=Math.min(v,100-lockedSum);
+  W[changed]=v;
+  const rem=100-v-lockedSum;
+  if(free.length===1){W[free[0]]=Math.max(0,rem);}
+  else if(free.length===2){
+    const os=W[free[0]]+W[free[1]];
+    if(os===0){W[free[0]]=Math.floor(rem/2);W[free[1]]=rem-W[free[0]];}
+    else{W[free[0]]=Math.round(rem*W[free[0]]/os);W[free[1]]=rem-W[free[0]];}
+  }
+  syncInputs();render();
+}
+
+function syncInputs(){
+  [['Cap','cap'],['Hist','hist'],['Fcst','fcst']].forEach(([K,k])=>{
+    document.getElementById('w'+K).value=W[k];
+  });
+  const s=W.cap+W.hist+W.fcst;
+  const el=document.getElementById('wtSum');
+  el.textContent='= '+s+'%';el.className='wt-sum '+(s===100?'ok':'bad');
+}
+
+function resetWeights(){
+  W={cap:25,hist:25,fcst:50};locked={cap:false,hist:false,fcst:false};
+  [['Cap','cap'],['Hist','hist'],['Fcst','fcst']].forEach(([K,k])=>{
+    document.getElementById('l'+K).textContent='Free';
+    document.getElementById('l'+K).className='wt-lock';
+    document.getElementById('w'+K).className='wt-field-inp';
+  });
+  syncInputs();render();
+}
+
+document.getElementById('wCap').oninput=e=>updateWeight('cap',e.target.value);
+document.getElementById('wHist').oninput=e=>updateWeight('hist',e.target.value);
+document.getElementById('wFcst').oninput=e=>updateWeight('fcst',e.target.value);
+
+const tgtEl=document.getElementById('tgtInp');
+tgtEl.addEventListener('focus',function(){this.value=rawTgt;this.select();});
+tgtEl.addEventListener('blur',function(){
+  rawTgt=parseInt(this.value.replace(/[^0-9]/g,''))||0;
+  this.value=rawTgt.toLocaleString('en-GB');render();
+});
+tgtEl.addEventListener('keydown',function(e){if(e.key==='Enter')this.blur();});
+
+render();
+</script>
+</body>
+</html>
