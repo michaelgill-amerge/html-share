@@ -1,12 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="refresh" content="0; url=Targets%20Methodology%20Q2%202026.html">
-  <title>Redirecting...</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amerge · Q2 Sales Tools</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Inter',sans-serif;background:#edf0f5;min-height:100vh;display:flex;flex-direction:column;}
+
+.hdr{background:#072778;padding:20px 40px;display:flex;align-items:center;justify-content:space-between;}
+.hdr-left{display:flex;flex-direction:column;gap:3px;}
+.hdr-left h1{font-size:17px;font-weight:800;color:#fff;}
+.hdr-left p{font-size:10.5px;color:rgba(255,255,255,0.45);}
+.hdr-badge{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:20px;padding:5px 14px;font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:0.5px;}
+
+.content{flex:1;max-width:900px;margin:0 auto;padding:48px 24px;width:100%;}
+
+.page-title{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#94a3b8;margin-bottom:20px;}
+
+.card-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+
+.tool-card{background:#fff;border-radius:14px;border:1px solid #e2e7f0;overflow:hidden;text-decoration:none;display:flex;flex-direction:column;transition:box-shadow 0.2s,transform 0.2s;}
+.tool-card:hover{box-shadow:0 8px 28px rgba(7,39,120,0.1);transform:translateY(-2px);}
+
+.card-top{padding:24px 24px 18px;flex:1;}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:14px;flex-shrink:0;}
+.card-icon.blue{background:#eef2fc;}
+.card-icon.teal{background:#e8faf6;}
+.card-icon.sky{background:#e8f5ff;}
+
+.card-top h2{font-size:15px;font-weight:800;color:#072778;margin-bottom:6px;}
+.card-top p{font-size:12px;color:#6a7d9a;line-height:1.6;}
+
+.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px;}
+.tag{display:inline-block;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:0.4px;}
+.tag-blue{background:#eef2fc;color:#5a7ac7;}
+.tag-teal{background:#e8faf6;color:#0CA88E;}
+.tag-sky{background:#e8f5ff;color:#2a9fd4;}
+
+.card-footer{padding:12px 24px;background:#f8fafc;border-top:1px solid #e2e7f0;display:flex;align-items:center;justify-content:space-between;}
+.card-footer span{font-size:11px;font-weight:600;color:#072778;}
+.card-arrow{font-size:14px;color:#4DB5EF;}
+
+.footer{background:#072778;padding:14px 40px;display:flex;align-items:center;justify-content:center;}
+.footer p{font-size:9.5px;color:rgba(255,255,255,0.4);}
+</style>
 </head>
 <body>
-  <p>Redirecting... <a href="Targets%20Methodology%20Q2%202026.html">Click here if not redirected</a></p>
+
+<div class="hdr">
+  <div class="hdr-left">
+    <h1>Amerge Sales Tools</h1>
+    <p>Q2 2026 · Internal resources</p>
+  </div>
+  <div class="hdr-badge">Q2 · APR – JUN 2026</div>
+</div>
+
+<div class="content">
+  <div class="page-title">Available tools</div>
+  <div class="card-grid" style="grid-template-columns:1fr 1fr;max-width:600px;">
+
+    <a class="tool-card" href="q2-worked-example.html">
+      <div class="card-top">
+        <div class="card-icon sky">▶️</div>
+        <h2>Worked Example</h2>
+        <p>An animated 8-step walkthrough showing exactly how a company target is split into pools and distributed to individual AEs.</p>
+        <div class="card-tags">
+          <span class="tag tag-sky">Animated</span>
+          <span class="tag tag-teal">Illustrative</span>
+          <span class="tag tag-blue">Full workings</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>View worked example</span>
+        <span class="card-arrow">→</span>
+      </div>
+    </a>
+
+    <a class="tool-card" href="q2-target-calculator.html">
+      <div class="card-top">
+        <div class="card-icon teal">⚙️</div>
+        <h2>Target Allocation Calculator</h2>
+        <p>Live calculator showing individual AE targets by country. Adjust the monthly target and weightings to see results update in real time.</p>
+        <div class="card-tags">
+          <span class="tag tag-teal">Interactive</span>
+          <span class="tag tag-blue">UK · DE · US</span>
+          <span class="tag tag-sky">Live data</span>
+        </div>
+      </div>
+      <div class="card-footer">
+        <span>Open calculator</span>
+        <span class="card-arrow">→</span>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<div class="footer">
+  <p>Amerge · Q2 Sales Tools · April – June 2026 · Internal use only</p>
+</div>
+
 </body>
 </html>
